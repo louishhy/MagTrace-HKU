@@ -17,7 +17,7 @@ class MagRetraceData:
     def _read_data(self):
         csv_path = os.path.join(self.folder_root, "Raw Data.csv")
         df = pd.read_csv(csv_path)
-        time_seq = df['Time (s)']
+        time_seq = df['Time (s)'].values
         mag_x = df['Magnetic Field x (µT)'].values
         mag_y = df['Magnetic Field y (µT)'].values
         mag_z = df['Magnetic Field z (µT)'].values
@@ -30,9 +30,27 @@ class MagRetraceDataAPI:
         self.data_root = data_root
         self.template_root = os.path.join(self.data_root, "templates")
         self.traversal_root = os.path.join(self.data_root, "traversals")
-        self.template_list = os.listdir(self.template_root)
-        self.traversal_list = os.listdir(self.traversal_root)
+        self.template_list = self._get_template_list()
+        self.traversal_list = self._get_traversal_list()
     
+    def _get_template_list(self):
+        template_list = os.listdir(self.template_root)
+        template_list = sorted(template_list)
+        nondata_files = [".DS_Store"]
+        for nondata_file in nondata_files:
+            if nondata_file in template_list:
+                template_list.remove(nondata_file)
+        return template_list
+    
+    def _get_traversal_list(self):
+        traversal_list = os.listdir(self.traversal_root)
+        traversal_list = sorted(traversal_list)
+        nondata_files = [".DS_Store"]
+        for nondata_file in nondata_files:
+            if nondata_file in traversal_list:
+                traversal_list.remove(nondata_file)
+        return traversal_list
+        
     # Listing modules with "printing" functionalities.
     def list_template_titles(self):
         print("Available template titles:")
