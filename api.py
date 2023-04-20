@@ -5,14 +5,10 @@ import pandas as pd
 class MagRetraceData:
     def __init__(self, folder_root):
         self.folder_root = folder_root
-        self.experiment_start_time = self._read_experiment_start_time()
+        self.experiment_name = os.path.basename(os.path.normpath(self.folder_root))
         self.time_seq, self.mag_x, self.mag_y, self.mag_z, self.mag_abs = self._read_data()
     
     # Functionalities that reads-in data from the source.
-    def _read_experiment_start_time(self):
-        csv_path = os.path.join(self.folder_root, "meta", "time.csv")
-        df = pd.read_csv(csv_path, index_col=0)
-        return df.loc['START', 'system time text']
     
     def _read_data(self):
         csv_path = os.path.join(self.folder_root, "Raw Data.csv")
@@ -50,6 +46,12 @@ class MagRetraceDataAPI:
             if nondata_file in traversal_list:
                 traversal_list.remove(nondata_file)
         return traversal_list
+    
+    def _check_keywords_in_string(self, string, keywords):
+        for keyword in keywords:
+            if keyword not in string:
+                return False
+        return True
         
     # Listing modules with "printing" functionalities.
     def list_template_titles(self):
@@ -83,6 +85,32 @@ class MagRetraceDataAPI:
             raise TypeError("Identifier must be either an integer or a string.")
         data_path = os.path.join(self.data_root, "traversals", data_title)
         return MagRetraceData(data_path)
+    
+    def get_template_data_by_keywords(self, keywords: list | str) -> list[MagRetraceData]:
+        data_list = []
+        if isinstance(keywords, str):
+            keywords = [keywords]
+        for data_title in self.template_list:
+            if self._check_keywords_in_string(data_title, keywords):
+                data = self.get_template_data(data_title)
+                data_list.append({
+                    "title": data_title,
+                    "data": data
+                })
+        return data_list
+
+    def get_traversal_data_by_keywords(self, keywords: list | str) -> list[MagRetraceData]:
+        data_list = []
+        if isinstance(keywords, str):
+            keywords = [keywords]
+        for data_title in self.traversal_list:
+            if self._check_keywords_in_string(data_title, keywords):
+                data = self.get_traversal_data(data_title)
+                data_list.append({
+                    "title": data_title,
+                    "data": data
+                })
+        return data_list
 
 
 
